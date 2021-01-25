@@ -19,12 +19,12 @@ enum player_t {
 
 struct player {
 	enum player_t type;
-	void (*get_move)(struct board *b, struct swap *s, struct action *a, int flg);
+	void (*get_move)(struct board *b, struct swap *s, struct action_loc *a, int flg);
 };
 
 
 void init_player(struct player *p, enum player_t type);
 
-void human_turn(struct board *b, struct swap *s, struct action *a, int flg);
+void human_turn(struct board *b, struct swap *s, struct action_loc *a, int flg);
 
 #endif

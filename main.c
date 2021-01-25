@@ -14,14 +14,15 @@ int main(void)
 	init_board(&b, LEFT, LEFT);
 
 	struct swap swp;
+	struct action_loc in_actn;
 	struct action actn;
 
 	struct piece *p1, *p2;
 	enum p_team won = NONE;
 
 	struct player players[2];
-	init_player(&players[0], HUMAN);
-	init_player(&players[1], BOT);
+	init_player(&players[WHITE], HUMAN);
+	init_player(&players[BLACK], BOT);
 
 	// game loop
 	while (1) {
@@ -32,7 +33,8 @@ int main(void)
 
 		// do swap 
 		while (1) {
-			players[b.turn].get_move(&b, &swp, &actn, 0);
+			players[b.turn].get_move(&b, &swp, &in_actn, 0);
+			printf("%d -> %d\n", swp.from, swp.to);
 
 			p1 = piece_at(swp.from % SIZE, swp.from / SIZE, b.squares);
 			p2 = piece_at(swp.to % SIZE, swp.to / SIZE, b.squares);
@@ -53,9 +55,18 @@ int main(void)
 
 		// do action
 		while (1) {
-			players[b.turn].get_move(&b, &swp, &actn, 1);
+			players[b.turn].get_move(&b, &swp, &in_actn, 1);
+			printf("%d: ", in_actn.piece_loc);
+			// convert in_actn to actn
+			actn.piece = b.squares[in_actn.piece_loc];
+			actn.n = in_actn.n;
+			for (int i = 0; i < in_actn.n; ++i) {
+				actn.trgts[i] = b.squares[in_actn.trgts[i]];
+				printf("%d, ", in_actn.trgts[i]);
+			}
+			printf("\n");
 
-			if (actn.piece->team == b.turn && can_action(actn.piece, actin.trgts, actn.n, b.squares)) {
+			if (actn.piece->team == b.turn && can_action(actn.piece, actn.trgts, actn.n, b.squares)) {
 				use_action(actn.piece, actn.trgts, actn.n, b.squares);
 				break;
 			}
@@ -71,7 +82,7 @@ int main(void)
 
 int is_gameover(struct board *b)
 {
-	enum p_team won = winner(&b);
+	enum p_team won = winner(b);
 	if (won != NONE) {
 		if (won == DRAW)
 			printf("IT'S A DRAW\n");

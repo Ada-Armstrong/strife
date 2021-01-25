@@ -57,7 +57,7 @@ static int get_action_input(char cords[5][3])
 	return count > 5 ? 0 : count;
 }
 
-void human_turn(struct board *b, struct swap *s, struct action *a, int flg)
+void human_turn(struct board *b, struct swap *s, struct action_loc *a, int flg)
 {
 #ifdef DEBUG
 	assert(b);
@@ -87,12 +87,13 @@ void human_turn(struct board *b, struct swap *s, struct action *a, int flg)
 				continue;
 			char_to_pos(swap_pos, loc, n_loc);
 
-			a->piece = piece_at(swap_pos[0], swap_pos[1], b.squares);
+			a->piece_loc = swap_pos[1] * SIZE + swap_pos[0];
 			a->n = n_loc - 1;
 
 			for (int i = 1; i < n_loc; ++i) {
-				a->trgts[i - 1] = piece_at(swap_pos[2 * i], swap_pos[2 * i + 1], b.squares);
+				a->trgts[i - 1] = swap_pos[2 * i + 1] * SIZE + swap_pos[2 * i];
 			}
+			break;
 		}
 
 	}

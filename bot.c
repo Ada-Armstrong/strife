@@ -14,7 +14,7 @@ static int evaluate_piece(struct piece *p, struct board *b)
 	int n_neigh = 0, n_empty = 0, n_team = 0;
 	struct piece *p2;
 
-	for (int i = 0; i < 4; ++i) {
+	for (int i = 0; i < MAX_NEIGHBOURS; ++i) {
 		x = p->x + MY_VECX[i];
 		y = p->y + MY_VECY[i];
 		if (!inbounds(x, y))
@@ -64,13 +64,13 @@ static int evaluate(struct board *b, enum p_team mine, enum p_team them)
 	int val = 0, tmp;
 
 	for (int i = 0; i < NUM_PIECES; ++i) {
-		tmp = evaluate_piece(b->teams[mine].pieces[i], b);
+		tmp = evaluate_piece(&(b->teams[mine].pieces[i]), b);
 		if (tmp == INT_MIN) {
 			val = tmp;
 			break;
 		}
 		val += tmp;
-		tmp = evaluate_piece(b->teams[them].pieces[i], b);
+		tmp = evaluate_piece(&(b->teams[them].pieces[i]), b);
 		if (tmp == INT_MIN) {
 			val = INT_MAX;
 			break;
@@ -81,7 +81,7 @@ static int evaluate(struct board *b, enum p_team mine, enum p_team them)
 	return val;
 }
 
-void bot_turn(struct board *b, struct swap *s, struct action *a, int flg)
+void bot_turn(struct board *b, struct swap *s, struct action_loc *a, int flg)
 {
 #ifdef DEBUG
 	assert(b);
@@ -98,10 +98,10 @@ void bot_turn(struct board *b, struct swap *s, struct action *a, int flg)
 
 	bool me_iso, them_iso;
 
-	struct board cpy;
+	struct board cpy, cpy2;
 
 	int max = INT_MIN, tmp;
-	int s_index, a_index;
+	int s_index;
 
 	int n_swaps = generate_swaps(b, swaps);
 
@@ -126,35 +126,43 @@ void bot_turn(struct board *b, struct swap *s, struct action *a, int flg)
 			s->from = swaps[i].from;
 			s->to = swaps[i].to;
 			return;
-		} else {
-			int n_actions = generate_actions(&cpy, actions);
-			struct board cpy2;
-			for (int j = 0; j < n_actions; ++j) {
-				copy_board(&cpy2, &cpy);
+		}
 
-				use_action(actions[j].piece, actions[j].trgts, actions[j].n, cpy2.squares);
-				tmp = evaluate(&cpy2, my_team, enemy_team);
-				if (tmp == INT_MAX) {
-					// win
-					s_index = i;
-					a_index = j;
-					goto BREAK_LOOPS;
+		copy_board(&cpy2, &cpy);
+		int n_actions = generate_actions(&cpy2, actions);
+		for (int j = 0; j < n_actions; ++j) {
+			use_action(actions[j].piece, actions[j].trgts, actions[j].n, cpy2.squares);
+			update_board(&cpy2);
+
+			//printf("APPLIED ACTION\n");
+			//print_board(&cpy2);
+
+			tmp = evaluate(&cpy2, my_team, enemy_team);
+			if (tmp == INT_MAX) {
+				// win
+				s_index = i;
+				// action
+				a->piece_loc = actions[j].piece->y * SIZE + actions[j].piece->x;
+				a->n = actions[j].n;
+				for (int k = 0; k < a->n; ++k) {
+					a->trgts[k] = actions[j].trgts[k]->y * SIZE + actions[j].trgts[k]->x;
 				}
-				if (tmp >= max) {
-					max = tmp;
-					s_index = i;
-					a_index = j;
+				goto BREAK_LOOPS;
+			}
+			if (tmp >= max) {
+				max = tmp;
+				s_index = i;
+				// action
+				a->piece_loc = actions[j].piece->y * SIZE + actions[j].piece->x;
+				a->n = actions[j].n;
+				for (int k = 0; k < a->n; ++k) {
+					a->trgts[k] = actions[j].trgts[k]->y * SIZE + actions[j].trgts[k]->x;
 				}
 			}
+			copy_board(&cpy2, &cpy);
 		}
 	}
 BREAK_LOOPS:
 	s->from = swaps[s_index].from;
 	s->to = swaps[s_index].to;
-
-	a->piece = actions[a_index].piece;
-	a->n = actions[a_index].n;
-	for (int k = 0; k < a->n; ++k) {
-		a->trgts[k] = actions[a_index].piece[k];
-	}
 }

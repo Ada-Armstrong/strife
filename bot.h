@@ -8,6 +8,6 @@
 #include <assert.h>
 #endif
 
-void bot_turn(struct board *b, struct swap *s, struct action *a, int);
+void bot_turn(struct board *b, struct swap *s, struct action_loc *a, int);
 
 #endif

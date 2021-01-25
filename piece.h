@@ -50,6 +50,10 @@ extern const int MY_VECY[4];
  */
 struct piece *init_piece(struct piece *p, int x, int y, enum p_type type, enum p_team team);
 
+/* copy the piece from src to dst
+ */ 
+void copy_piece(struct piece *dst, struct piece *src);
+
 /* returns whether (x, y) is on the board
  */
 bool inbounds(int x, int y);

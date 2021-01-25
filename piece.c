@@ -47,6 +47,23 @@ struct piece *init_piece(struct piece *p, int x, int y, enum p_type type, enum p
 	return p;
 }
 
+void copy_piece(struct piece *dst, struct piece *src)
+{
+#ifdef DEBUG
+	assert(dst);
+	assert(src);
+#endif
+	dst->max_hp = src->max_hp;
+	dst->hp = src->hp;
+	dst->x = src->x;
+	dst->y = src->y;
+	dst->swapable = src->swapable;
+	dst->blocks = src->blocks;
+	dst->active = src->active;
+	dst->type = src->type;
+	dst->team = src->team;
+}
+
 bool inbounds(int x, int y)
 {
 	return 0 <= x && x < SIZE && 0 <= y && y < SIZE; 

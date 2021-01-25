@@ -138,7 +138,7 @@ static void copy_team(struct team *dst, struct team *src)
 	dst->passes = src->passes;
 	dst->color = src->color;
 	for (int i = 0; i < NUM_PIECES; ++i) {
-		dst->pieces[i] = src->pieces[i];
+		copy_piece(&(dst->pieces[i]), &(src->pieces[i]));
 	}
 }
 

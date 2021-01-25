@@ -1,10 +1,5 @@
 #include "generate.h"
 
-struct adj {
-	int n;
-	int neighbours[4];
-};
-
 static inline int min(int a, int b)
 {
 	return a < b ? a : b;
@@ -15,7 +10,12 @@ static inline int max(int a, int b)
 	return a < b ? b : a;
 }
 
-static void piece_generate_swaps(struct piece *p, struct board *b, struct adj swaps[NUM_SQRS])
+struct adj {
+	int n;
+	int neighbours[2];
+};
+
+static void piece_generate_swaps(struct piece *p, struct board *b, struct adj swaps[NUM_SQRS], int visited[NUM_SQRS])
 {
 #ifdef DEBUG
 	assert(p);
@@ -27,6 +27,9 @@ static void piece_generate_swaps(struct piece *p, struct board *b, struct adj sw
 	int x, y;
  	int m_sqr;
 	int p_sqr = XY1D(p->x, p->y);
+	if (visited[p_sqr])
+		return;
+	visited[p_sqr] = 1;
 
 	for (int i = 0; i < 4; ++i) {
 		x = p->x + MY_VECX[i];
@@ -34,8 +37,11 @@ static void piece_generate_swaps(struct piece *p, struct board *b, struct adj sw
 		if (!inbounds(x, y))
 			continue;
 
+		m_sqr = XY1D(x, y);
+		if (visited[m_sqr])
+			continue;
+
 		if (can_move(p, x, y, b->squares)) {
-			m_sqr = XY1D(x, y);
 			swaps[min(p_sqr, m_sqr)].neighbours[swaps[min(p_sqr, m_sqr)].n] = max(p_sqr, m_sqr);
 			swaps[min(p_sqr, m_sqr)].n += 1;
 		}
@@ -48,13 +54,15 @@ int generate_swaps(struct board *b, struct swap swaps[24])
 	assert(b);
 #endif
 	struct adj adj_list[NUM_SQRS];
+	int visited[NUM_SQRS];
 	for (int i = 0; i < NUM_SQRS; ++i) {
 		adj_list[i].n = 0; 
+		visited[i] = 0;
 	}
 
 	// add unqiue swaps to adj_list
 	for (int i = 0; i < NUM_PIECES; ++i) {
-		piece_generate_swaps(&(b->teams[b->turn].pieces[i]), b, adj_list);
+		piece_generate_swaps(&(b->teams[b->turn].pieces[i]), b, adj_list, visited);
 	}
 
 	// convert adj_list to swaps array
@@ -77,7 +85,7 @@ static void add_k_ele_subsets(int k, struct piece *p, struct piece *trgts[4], in
 	assert(p);
 	assert(count);
 #endif
-	for (int i = pow(2, k) - 1; i < pow(2, n) - pow(2, n - k);) {
+	for (int i = pow(2, k) - 1; i <= pow(2, n) - pow(2, n - k);) {
 		int c = 0;
 
 		for (int j = 0; j < n; ++j) {
