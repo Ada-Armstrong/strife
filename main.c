@@ -8,10 +8,58 @@
 
 int is_gameover(struct board *b);
 
+void choose_start(struct board *b)
+{
+	char c;
+	enum start_pos black, white;
+	while (1) {
+		printf("Black choose starting pos (0-3)\n");
+		c = getchar() - '0';
+		switch (c) {
+		case 0:
+			black = LEFT;
+			goto white_choice;
+		case 1:
+			black = MID_LEFT;
+			goto white_choice;
+		case 2:
+			black = MID_RIGHT;
+			goto white_choice;
+		case 3:
+			black = RIGHT;
+			goto white_choice;
+		}
+	}
+
+white_choice:
+	while (1) {
+		printf("White choose starting pos (0-3)\n");
+		c = getchar() - '0';
+		switch (c) {
+		case 0:
+			white = LEFT;
+			goto setup_board;
+		case 1:
+			white = MID_LEFT;
+			goto setup_board;
+		case 2:
+			white = MID_RIGHT;
+			goto setup_board;
+		case 3:
+			white = RIGHT;
+			goto setup_board;
+		default:
+			break;
+		}
+	}
+setup_board:
+	init_board(b, white, black);
+}
+
 int main(void)
 {
 	struct board b;
-	init_board(&b, LEFT, LEFT);
+	choose_start(&b);
 
 	struct swap swp;
 	struct action_loc in_actn;

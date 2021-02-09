@@ -1,5 +1,7 @@
 #include "bot.h"
 
+#define MIN(a, b) ( a < b ? a : b )
+
 static int evaluate_piece(struct piece *p, struct board *b)
 {
 #ifdef DEBUG
@@ -81,6 +83,69 @@ static int evaluate(struct board *b, enum p_team mine, enum p_team them)
 	return val;
 }
 
+static int evaluate_one_deep(struct board *b)
+{
+#ifdef DEBUG
+	assert(b);
+#endif
+	enum p_team my_team = b->turn;
+	enum p_team enemy_team = 1 - my_team;
+
+	struct swap swaps[24];
+	struct action actions[100];
+
+	bool me_iso, them_iso;
+
+	struct board cpy, cpy2;
+
+	int tmp;
+	int s_index;
+
+	int n_swaps = generate_swaps(b, swaps);
+
+	int score;
+
+	for (int i = 0; i < n_swaps; ++i) {
+		copy_board(&cpy, b);
+
+		swap(&cpy, swaps[i].from, swaps[i].to);
+		update_board(&cpy);
+		
+		me_iso = is_isolated(&(cpy.teams[my_team]));
+		them_iso = is_isolated(&(cpy.teams[enemy_team]));
+
+		if (me_iso && them_iso) {
+			// draw
+			tmp = 0;
+			score = MIN(score, tmp);
+			continue;
+		} else if (me_iso) {
+			// lose
+			tmp = INT_MIN;
+			score = MIN(score, tmp);
+			continue;
+		} else if (them_iso) {
+			// win
+			tmp = INT_MAX;
+			score = MIN(score, tmp);
+			continue;
+		}
+
+		copy_board(&cpy2, &cpy);
+		int n_actions = generate_actions(&cpy2, actions);
+		for (int j = 0; j < n_actions; ++j) {
+			use_action(actions[j].piece, actions[j].trgts, actions[j].n, cpy2.squares);
+			update_board(&cpy2);
+
+			tmp = evaluate(&cpy2, my_team, enemy_team);
+			score = MIN(score, tmp);
+			copy_board(&cpy2, &cpy);
+		}
+	}
+
+	return score;
+}
+
 void bot_turn(struct board *b, struct swap *s, struct action_loc *a, int flg)
 {
 #ifdef DEBUG
@@ -134,10 +199,7 @@ void bot_turn(struct board *b, struct swap *s, struct action_loc *a, int flg)
 			use_action(actions[j].piece, actions[j].trgts, actions[j].n, cpy2.squares);
 			update_board(&cpy2);
 
-			//printf("APPLIED ACTION\n");
-			//print_board(&cpy2);
-
-			tmp = evaluate(&cpy2, my_team, enemy_team);
+			tmp = evaluate_one_deep(&cpy2);
 			if (tmp == INT_MAX) {
 				// win
 				s_index = i;
