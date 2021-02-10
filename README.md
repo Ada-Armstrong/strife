@@ -11,8 +11,9 @@ To use an action enter the coordinate of the piece followed by the piece(s) to u
 Example: b3 b2 c2 \
 The piece at b3 will use it's action on b2 and c2
 
-## Compile 
+## Compile && Run
+Requires: [readline](https://tiswww.case.edu/php/chet/readline/rltop.html)
 ```bash
-gcc *.c -lreadline -lm -o strife
+make
+./strife
 ```
-

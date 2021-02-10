@@ -29,9 +29,12 @@ void choose_start(struct board *b)
 			black = RIGHT;
 			goto white_choice;
 		}
+		while(getchar() != '\n');
 	}
 
 white_choice:
+	while(getchar() != '\n');
+
 	while (1) {
 		printf("White choose starting pos (0-3)\n");
 		c = getchar() - '0';
@@ -48,9 +51,8 @@ white_choice:
 		case 3:
 			white = RIGHT;
 			goto setup_board;
-		default:
-			break;
 		}
+		while(getchar() != '\n');
 	}
 setup_board:
 	init_board(b, white, black);
