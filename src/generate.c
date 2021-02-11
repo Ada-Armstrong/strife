@@ -89,7 +89,7 @@ static void add_k_ele_subsets(int k, struct piece *p, struct piece *trgts[4], in
 		int c = 0;
 
 		for (int j = 0; j < n; ++j) {
-			if (i & (1 < j)) {
+			if (i & (1 << j)) {
 				actions[*count].trgts[c++] = trgts[j];
 			}
 		}
@@ -253,7 +253,7 @@ static void medic_generate_actions(struct piece *p, struct board *b, struct acti
 	}
 }
 
-static int piece_generate_actions(struct piece *p, struct board *b, struct action actions[100], int *count)
+static void piece_generate_actions(struct piece *p, struct board *b, struct action actions[100], int *count)
 {
 #ifdef DEBUG
 	assert(p);
@@ -261,7 +261,7 @@ static int piece_generate_actions(struct piece *p, struct board *b, struct actio
 	assert(count);
 #endif
 	if (!p->active || p->type == SHIELD || p->type == EMPTY)
-		return *count;
+		return;
 	
 	switch (p->type) {
 	case KING:
