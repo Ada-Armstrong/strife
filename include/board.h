@@ -29,6 +29,7 @@ enum start_pos {
 	RIGHT
 };
 
+
 /* returns true if the team is isolated
  */
 bool is_isolated(struct team *t);

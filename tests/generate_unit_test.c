@@ -60,17 +60,19 @@ void run_tests(struct tests *tst)
 
 int simple_position(struct board *b);
 int knight_actions(struct board *b);
+int mid_game_bug(struct board *b);
 
 
 int main(void)
 {
-	const int n_tests = 2;
+	const int n_tests = 3;
 	struct tests all_tests;
 
 	setup_tests(&all_tests, n_tests);
 
 	add_test(&all_tests, "simple_position", simple_position);
 	add_test(&all_tests, "knight_actions", knight_actions);
+	add_test(&all_tests, "mid_game_bug", mid_game_bug);
 
 	run_tests(&all_tests);
 
@@ -172,6 +174,37 @@ int knight_actions(struct board *b)
 		assert(0 < actions[i].n && actions[i].n < 3);
 		total_trgts += actions[i].n;
 	}
+
+	return 0;
+}
+
+int mid_game_bug(struct board *b)
+{
+	int n;
+	struct action actions[100];
+
+	init_board(b, MID_RIGHT, MID_LEFT);
+
+	init_piece(b->squares[XY1D(0, 2)], 0, 2, EMPTY, NONE);
+	init_piece(b->squares[XY1D(0, 1)], 0, 1, EMPTY, NONE);
+	init_piece(b->squares[XY1D(2, 0)], 2, 0, EMPTY, NONE);
+	swap(b, 3, 11); 
+	swap(b, 8, 9); 
+	swap(b, 13, 9); 
+	swap(b, 13, 7); 
+
+	b->squares[XY1D(3, 0)]->hp = 2;
+	b->squares[XY1D(1, 1)]->hp = 4;
+	b->squares[XY1D(2, 2)]->hp = 2;
+	b->squares[XY1D(1, 3)]->hp = 2;
+	b->squares[XY1D(2, 3)]->hp = 2;
+
+	update_board(b);
+
+	// generate actions for black
+	n = generate_actions(b, actions);
+
+	assert(n == 8);
 
 	return 0;
 }

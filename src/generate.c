@@ -137,7 +137,7 @@ static void wizard_generate_actions(struct piece *p, struct board *b, struct act
 	struct piece *p2;
 	for (int i = 0; i < NUM_PIECES; ++i) {
 		p2 = &(b->teams[b->turn].pieces[i]);
-		if (p == p2)
+		if (p == p2 || p2->type == EMPTY)
 			continue;
 		actions[*count].piece = p;
 		actions[*count].n = 1;
