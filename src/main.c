@@ -51,8 +51,6 @@ int main(void)
 	struct action actn;
 
 	struct piece *p1, *p2;
-	enum p_team won = NONE;
-
 
 	// game loop
 	while (1) {
@@ -64,13 +62,13 @@ int main(void)
 		// do swap 
 		while (1) {
 			players[b.turn].get_move(&b, &swp, &in_actn, 0);
+
 			printf("%s <-> %s\n", rank_file[swp.from], rank_file[swp.to]);
 
 			p1 = piece_at(swp.from % SIZE, swp.from / SIZE, b.squares);
 			p2 = piece_at(swp.to % SIZE, swp.to / SIZE, b.squares);
 
-			if ((p1->team == b.turn && can_move(p1, p2->x, p2->y, b.squares))
-					|| p2->team == b.turn && can_move(p2, p1->x, p1->y, b.squares)) {
+			if (can_swap(&b, p1, p2)) {
 				swap_pieces(p1, p2, b.squares);
 				break;
 			}
@@ -86,18 +84,26 @@ int main(void)
 		// do action
 		while (1) {
 			players[b.turn].get_move(&b, &swp, &in_actn, 1);
-			printf("%s: ", rank_file[in_actn.piece_loc]);
-			// convert in_actn to actn
-			actn.piece = b.squares[in_actn.piece_loc];
-			actn.n = in_actn.n;
-			for (int i = 0; i < in_actn.n; ++i) {
-				actn.trgts[i] = b.squares[in_actn.trgts[i]];
-				printf("%s, ", rank_file[in_actn.trgts[i]]);
-			}
-			printf("\n");
 
-			if (actn.piece->team == b.turn && can_action(actn.piece, actn.trgts, actn.n, b.squares)) {
-				use_action(actn.piece, actn.trgts, actn.n, b.squares);
+			if (in_actn.piece_loc == -1 && in_actn.n == 0) {
+				// skip
+				printf("skip action\n");
+				actn.piece = NULL;
+				actn.n = in_actn.n;
+			} else {
+				printf("%s: ", rank_file[in_actn.piece_loc]);
+				// convert in_actn to actn
+				actn.piece = b.squares[in_actn.piece_loc];
+				actn.n = in_actn.n;
+				for (int i = 0; i < in_actn.n; ++i) {
+					actn.trgts[i] = b.squares[in_actn.trgts[i]];
+					printf("%s, ", rank_file[in_actn.trgts[i]]);
+				}
+				printf("\n");
+			}
+
+			if (can_apply_action(&b, actn.piece, actn.trgts, actn.n)) {
+				apply_action(&b, actn.piece, actn.trgts, actn.n);
 				break;
 			}
 			if (players[b.turn].type == BOT)

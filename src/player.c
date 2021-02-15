@@ -45,6 +45,12 @@ static int get_action_input(char cords[5][3])
 	char *token;
 	int count = 0;
 	token = strtok(line, " \n");
+
+	if (token && strcmp(token, "skip") == 0) {
+		// skip action
+		return -1;
+	}
+
 	while (1) {
 		if (count > 5 || !token || !valid_loc(token))
 			break;
@@ -83,6 +89,14 @@ void human_turn(struct board *b, struct swap *s, struct action_loc *a, int flg)
 		int n_loc;
 		while (1) {
 			n_loc = get_action_input(loc);
+
+			if (n_loc < 0) {
+				// skip action
+				a->piece_loc = -1;
+				a->n = 0;
+				break;
+			}
+
 			if (n_loc < 2 || n_loc > 5)
 				continue;
 			char_to_pos(swap_pos, loc, n_loc);
@@ -95,7 +109,6 @@ void human_turn(struct board *b, struct swap *s, struct action_loc *a, int flg)
 			}
 			break;
 		}
-
 	}
 }
 

@@ -29,7 +29,7 @@ enum p_team winner(struct board *b)
 	assert(b);
 #endif
 	for (int i = 0; i < NUM_TEAMS; ++i) {
-		if (is_king_dead(&(b->teams[i])) || b->teams[i].passes == MAX_PASSES)
+		if (is_king_dead(&(b->teams[i])) || b->teams[i].passes >= MAX_PASSES)
 			return BLACK - i;
 	}
 
@@ -185,6 +185,41 @@ void swap(struct board *b, int p1, int p2)
 	assert(p2 < NUM_SQRS);
 #endif
 	swap_pieces(b->squares[p1], b->squares[p2], b->squares);
+}
+
+bool can_swap(struct board *b, struct piece *p1, struct piece *p2) 
+{
+#ifdef DEBUG
+	assert(b);
+#endif
+	return (p1->team == b->turn && can_move(p1, p2->x, p2->y, b->squares))
+		|| (p2->team == b->turn && can_move(p2, p1->x, p1->y, b->squares));
+}
+
+void apply_action(struct board *b, struct piece *p, struct piece **trgts, int len)
+{
+#ifdef DEBUG
+	assert(b);
+#endif
+	if (!p && len == 0) {
+		// skip action
+		b->teams[b->turn].passes += 1;
+		return;
+	}
+#ifdef DEBUG
+	if (!p)
+		assert(0);
+#endif
+	use_action(p, trgts, len, b->squares);
+	b->teams[b->turn].passes = 0;
+}
+
+bool can_apply_action(struct board *b, struct piece *p, struct piece **trgts, int len)
+{
+#ifdef DEBUG
+	assert(b);
+#endif
+	return (!p && !len) || (p->team == b->turn && can_action(p, trgts, len, b->squares));
 }
 
 static char char_piece(struct piece *p)

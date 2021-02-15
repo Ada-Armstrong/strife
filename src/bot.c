@@ -52,6 +52,10 @@ static int evaluate_piece(struct piece *p, struct board *b)
 	case SHIELD:
 		val = (p->hp > 1) * n_team + diff + p->hp * p->hp;
 		break;
+#ifdef DEBUG
+	default:
+		assert(0);
+#endif
 	}
 
 	return val;
@@ -99,11 +103,9 @@ static int evaluate_one_deep(struct board *b)
 	struct board cpy, cpy2;
 
 	int tmp;
-	int s_index;
+	int score;
 
 	int n_swaps = generate_swaps(b, swaps);
-
-	int score;
 
 	for (int i = 0; i < n_swaps; ++i) {
 		copy_board(&cpy, b);
@@ -134,7 +136,7 @@ static int evaluate_one_deep(struct board *b)
 		copy_board(&cpy2, &cpy);
 		int n_actions = generate_actions(&cpy2, actions);
 		for (int j = 0; j < n_actions; ++j) {
-			use_action(actions[j].piece, actions[j].trgts, actions[j].n, cpy2.squares);
+			apply_action(&cpy2, actions[j].piece, actions[j].trgts, actions[j].n);
 			update_board(&cpy2);
 
 			tmp = evaluate(&cpy2, my_team, enemy_team);
@@ -144,6 +146,24 @@ static int evaluate_one_deep(struct board *b)
 	}
 
 	return score;
+}
+
+static inline void convert_to_action_loc(struct action_loc *a_loc, struct action *a)
+{
+#ifdef DEBUG
+	if (!a->piece && a->n)
+		assert(0);
+#endif
+	if (!a->piece && !a->n) {
+		// skip
+		a_loc->piece_loc = -1;
+	} else {
+		a_loc->piece_loc = a->piece->y * SIZE + a->piece->x;
+		a_loc->n = a->n;
+		for (int k = 0; k < a->n; ++k) {
+			a_loc->trgts[k] = a->trgts[k]->y * SIZE + a->trgts[k]->x;
+		}
+	}
 }
 
 void bot_turn(struct board *b, struct swap *s, struct action_loc *a, int flg)
@@ -196,30 +216,20 @@ void bot_turn(struct board *b, struct swap *s, struct action_loc *a, int flg)
 		copy_board(&cpy2, &cpy);
 		int n_actions = generate_actions(&cpy2, actions);
 		for (int j = 0; j < n_actions; ++j) {
-			use_action(actions[j].piece, actions[j].trgts, actions[j].n, cpy2.squares);
+			apply_action(&cpy2, actions[j].piece, actions[j].trgts, actions[j].n);
 			update_board(&cpy2);
 
 			tmp = evaluate_one_deep(&cpy2);
 			if (tmp == INT_MAX) {
 				// win
 				s_index = i;
-				// action
-				a->piece_loc = actions[j].piece->y * SIZE + actions[j].piece->x;
-				a->n = actions[j].n;
-				for (int k = 0; k < a->n; ++k) {
-					a->trgts[k] = actions[j].trgts[k]->y * SIZE + actions[j].trgts[k]->x;
-				}
+				convert_to_action_loc(a, &actions[j]);
 				goto BREAK_LOOPS;
 			}
 			if (tmp >= max) {
 				max = tmp;
 				s_index = i;
-				// action
-				a->piece_loc = actions[j].piece->y * SIZE + actions[j].piece->x;
-				a->n = actions[j].n;
-				for (int k = 0; k < a->n; ++k) {
-					a->trgts[k] = actions[j].trgts[k]->y * SIZE + actions[j].trgts[k]->x;
-				}
+				convert_to_action_loc(a, &actions[j]);
 			}
 			copy_board(&cpy2, &cpy);
 		}
@@ -228,3 +238,4 @@ BREAK_LOOPS:
 	s->from = swaps[s_index].from;
 	s->to = swaps[s_index].to;
 }
+

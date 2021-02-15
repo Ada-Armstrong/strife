@@ -111,19 +111,19 @@ int simple_position(struct board *b)
 	assert(swaps[0].from == 8 && swaps[0].to == 12);
 	assert(swaps[1].from == 12 && swaps[1].to == 13);
 
-	// generate actions for white
 	struct action actions[100];
 
+	// generate actions for white
 	n = generate_actions(b, actions);
 
-	assert(n == 0);
+	assert(n == 1);
 
 	toggle_turn(b);
 
 	// generate actions for black
 	n = generate_actions(b, actions);
 
-	assert(n == 0);
+	assert(n == 1);
 
 	return 0;
 }
@@ -154,24 +154,25 @@ int knight_actions(struct board *b)
 	// generate actions for black
 	n = generate_actions(b, actions);
 
-	assert(n == 1);
+	assert(n == 2);
 
 	toggle_turn(b);
 
 	// generate actions for white
 	n = generate_actions(b, actions);
 
-	assert(n == 3);
+	assert(n == 4);
 
 	const int exp_total_trgts = 3;
 	int total_trgts = 0;
 
-	for (int i = 0; i < n; ++i) {
+	// first move is skip
+	for (int i = 1; i < n; ++i) {
 		assert(actions[i].piece->type == KNIGHT);
 		assert(actions[i].piece->team == WHITE);
 		assert(actions[i].piece->x == 1);
 		assert(actions[i].piece->y == 1);
-		assert(0 < actions[i].n && actions[i].n < 3);
+		assert(0 < actions[i].n && actions[i].n < exp_total_trgts);
 		total_trgts += actions[i].n;
 	}
 
@@ -204,7 +205,7 @@ int mid_game_bug(struct board *b)
 	// generate actions for black
 	n = generate_actions(b, actions);
 
-	assert(n == 8);
+	assert(n == 9);
 
 	return 0;
 }

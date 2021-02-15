@@ -4,7 +4,7 @@ ODIR=$(SDIR)/obj
 EXE=strife
 
 CC=gcc
-CFLAGS=-I$(IDIR) -g
+CFLAGS=-I$(IDIR) -g -Wall -Werror -DDEBUG
 
 LIBS=-lm -lreadline
 

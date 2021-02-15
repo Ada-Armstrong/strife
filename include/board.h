@@ -62,6 +62,18 @@ void toggle_turn(struct board *b);
  */
 void swap(struct board *b, int p1, int p2);
 
+/* returns whether the swap is legal
+ */
+bool can_swap(struct board *b, struct piece *p1, struct piece *p2);
+
+/* performs the action and sets skip flags as needed
+ */
+void apply_action(struct board *b, struct piece *p, struct piece **trgts, int len);
+
+/* returns whether the action is legal
+ */
+bool can_apply_action(struct board *b, struct piece *p, struct piece **trgts, int len);
+
 /* prints the current state of the board
  */
 void print_board(struct board *b);

@@ -279,6 +279,10 @@ static void piece_generate_actions(struct piece *p, struct board *b, struct acti
 	case MEDIC:
 		medic_generate_actions(p, b, actions, count);
 		break;
+#ifdef DEBUG
+	default:
+		assert(0);
+#endif
 	}
 }
 
@@ -287,7 +291,10 @@ int generate_actions(struct board *b, struct action actions[100])
 #ifdef DEBUG
 	assert(b);
 #endif
-	int count = 0;
+	int count = 1;
+	actions[0].piece = NULL;
+	actions[0].n = 0;
+
 	for (int i = 0; i < NUM_PIECES; ++i) {
 		piece_generate_actions(&(b->teams[b->turn].pieces[i]), b, actions, &count);
 	}

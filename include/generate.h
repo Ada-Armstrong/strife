@@ -13,6 +13,8 @@ struct swap {
 	int to;
 };
 
+/* skip action if piece == NULL and n == 0
+ */
 struct action {
 	struct piece *piece;
 	int n;
